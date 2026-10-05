@@ -1,0 +1,67 @@
+<nav class="bg-white border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex items-center justify-between h-16 px-6">
+            <!--mobile menu button-->
+            <button
+               type="button"
+               id="mobile-menu-button"
+               class="md:hidden inline-flex items-center justify-center p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition"
+               aria-label="باز کردن منو"
+               aria-expanded="false"
+               aria-controls="mobile-menu"
+               >
+                <span id="mobile-menu-icon">☰</span>
+            </button>
+            <!--logo-->
+            <a href="{% url "home" %}" class="text-2xl font-bold text-indigo-600">کافی نت آنلاین</a>
+            <!--menu-->
+            <ul class="hidden md:flex items-center gap-8">
+                <li>
+                    <a href="{% url "home" %}" class="hover:text-indigo-600 transition">صفحه اصلی</a>
+                </li>
+                <li>
+                    <a href="{% url "services" %}" class="hover:text-indigo-600 transition">خدمات</a>
+                </li>
+                <li>
+                    <a href="{% url "about" %}" class="hover:text-indigo-600 transition">درباره ما</a>
+                </li>
+                <li>
+                    <a href="{% url "contact" %}" class="hover:text-indigo-600 transition">تماس</a>
+                </li>
+            </ul>
+            <!--login-->
+            {% if request.user.is_authenticated %}
+
+             <div class="flex items-center gap-4">
+
+                <a
+                    href="{% url 'profile' %}"
+                    class="text-slate-700 hover:text-indigo-600 transition"
+                >
+                    {{ user.username }}
+                </a>
+
+                <a
+                    href="{% url 'logout' %}"
+                    class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2 rounded-xl transition"
+                >
+                   خروج
+                </a>
+
+             </div>
+
+            {% else %}
+
+             <a
+                 href="{% url 'login' %}"
+                 class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl transition"
+             >
+                 ورود
+             </a>
+
+          {% endif %}
+        </div>
+    </div>
+    <!--اضافه کردن منوی موبایلی-->
+    {% include "components/mobile_menu.html" %}
+</nav>

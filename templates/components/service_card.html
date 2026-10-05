@@ -1,0 +1,20 @@
+<div class="group bg-white border border-slate-200 rounded-2xl p-6 hover:border-indigo-200 hover:shadow-lg transition duration-300">
+
+    <div class="w-14 h-14 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-2xl mb-5">
+        {{ icon }}
+    </div>
+
+    <h3 class="text-lg font-bold text-slate-800 mb-2">
+        {{ title }}
+    </h3>
+
+    <p class="text-sm text-slate-500 leading-7">
+        {{ description }}
+    </p>
+
+    <a href="{% url 'service_detail' service_slug %}" class="inline-flex items-center gap-2 mt-5 text-sm font-semibold text-indigo-500 group-hover:text-indigo-700">
+        مشاهده خدمت
+        <span aria-hidden="true">←</span>
+    </a>
+
+</div>

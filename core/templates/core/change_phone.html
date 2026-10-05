@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}
+تغییر شماره موبایل
+{% endblock %}
+
+
+{% block content %}
+
+<div class="max-w-xl mx-auto px-6 py-12">
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+
+        <h1 class="text-2xl font-bold text-slate-900">
+            تغییر شماره موبایل
+        </h1>
+
+        <p class="mt-2 mb-8 text-slate-500">
+            شماره موبایل جدید خود را وارد کنید.
+        </p>
+
+
+        <form method="post">
+
+            {% csrf_token %}
+
+
+            <div class="mb-6">
+
+                <label
+                    for="{{ form.phone_number.id_for_label }}"
+                    class="block mb-2 text-sm font-medium text-slate-700"
+                >
+                    شماره موبایل جدید
+                </label>
+
+                {{ form.phone_number }}
+
+                {% for error in form.phone_number.errors %}
+
+                    <p class="mt-2 text-sm text-red-600">
+                        {{ error }}
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+
+            <div class="flex items-center gap-3">
+
+                <button
+                    type="submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl transition"
+                >
+                    دریافت کد تأیید
+                </button>
+
+                <a
+                    href="{% url 'profile' %}"
+                    class="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 transition"
+                >
+                    انصراف
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %} {% block title %}{% endblock %} {% endcomment %}
+
+{% block css_file %}
+<link rel="stylesheet" href="{% static "output/output.css" %}">
+{% endblock %}
+
+{% block content %}
+{% include "includes/hero.html" %}
+{% include "includes/services.html" %}
+{% endblock %}

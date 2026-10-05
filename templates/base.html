@@ -1,0 +1,20 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static "output/output.css" %}">
+    <title>{% block title %}وب سایت خدمات آنلاین{% endblock %}</title>
+    {% block css_file %}{% endblock %}
+</head>
+<body>
+    {% include "includes/navbar.html" %}
+    {% block content %}
+    {% endblock %}
+
+    {% block js_files %}
+    {% endblock %}
+    <script src="{% static "js/navbar.js" %}"></script>
+</body>
+</html>

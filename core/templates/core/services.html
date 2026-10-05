@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}
+خدمات
+{% endblock %}
+
+{% block content %}
+<section class="py-16 md:py-24 bg-slate-50">
+    <div class="max-w.7xl mx-auto px-6">
+        <!--Header-->
+        <div class="max-w-2xl mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">
+                خدمات کافی نت آنلاین
+            </h1>
+            <p class="mt-4 text-lg leading-8 text-slate-600">
+                خدمات اینترنتی مورد نظر خود را انتخاب کنید. و درخواست خود را به صورت آنلاین ثبت کنید.
+            </p>
+        </div>
+        <!--Services-->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for service in services %}
+                  {% include "components/service_card.html" with icon=service.icon title=service.title description=service.description service_slug=service.slug %}
+               {% empty %}
+               <div class="col-span-full py-16 text-center">
+                   <p class="text-slate-500">
+                      در حال حاضر خدمتی برای نمایش وجود ندارد.
+                   </p>
+               </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

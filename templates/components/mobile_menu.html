@@ -1,0 +1,44 @@
+<!--منوی موبایلی-->
+<div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 px-6 py-4">
+
+    <ul class="space-y-3">
+
+        <li>
+            <a
+                href="{% url 'home' %}"
+                class="block py-2 text-slate-600 hover:text-indigo-600 transition"
+            >
+                صفحه اصلی
+            </a>
+        </li>
+
+        <li>
+            <a
+                href="{% url "services" %}"
+                class="block py-2 text-slate-600 hover:text-indigo-600 transition"
+            >
+                خدمات
+            </a>
+        </li>
+
+        <li>
+            <a
+                href="{% url "about" %}"
+                class="block py-2 text-slate-600 hover:text-indigo-600 transition"
+            >
+                درباره ما
+            </a>
+        </li>
+
+        <li>
+            <a
+                href="{% url "contact" %}"
+                class="block py-2 text-slate-600 hover:text-indigo-600 transition"
+            >
+                تماس
+            </a>
+        </li>
+
+    </ul>
+
+</div>
