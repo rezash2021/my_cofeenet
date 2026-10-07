@@ -1,6 +1,8 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from .utils import generate_otp,create_phone_verification
+from django.utils import timezone
+from datetime import timedelta
 
 
 class GenerateOTPTest(TestCase):
@@ -67,3 +69,53 @@ class PhoneVerificationPurposeTest(TestCase):
         password_reset_verification.refresh_from_db()
 
         self.assertFalse(password_reset_verification.is_verified)
+
+
+class RegistrationVerificationExpiryTest(TestCase):
+    def test_expired_verification_is_not_accepted(self):
+        user = User.objects.create_user(
+            username="expiryuser",
+            password="testpass123"
+        )
+
+        verification = create_phone_verification(
+            user=None,
+            phone_number="09123456789",
+            purpose="registration"
+        )
+
+        verification.expires_at = timezone.now() - timedelta(minutes=1)
+        verification.save(update_fields=["expires_at"])
+
+        self.assertTrue(
+            verification.expires_at < timezone.now()
+        )
+
+class RegistrationVerificationViewTest(TestCase):
+    def test_expired_otp_is_rejected(self):
+        verification = create_phone_verification(
+            user=None,
+            phone_number="09123456789",
+            purpose="registration"
+        )
+
+        verification.expires_at = timezone.now() - timedelta(minutes=1)
+        verification.save(update_fields=["expires_at"])
+
+        session = self.client.session
+        session["registration_username"] = "viewtestuser"
+        session["registration_phone"] = "09123456789"
+        session.save()
+
+        response = self.client.post(
+            "/register/verify/",
+            {"code": verification.code}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            response.wsgi_request.session.get(
+                "registration_verified",
+                False
+            )
+        )
