@@ -43,3 +43,27 @@ class PhoneVerificationCooldownTest(TestCase):
                 purpose="password_reset"
             )
         )
+
+
+class PhoneVerificationPurposeTest(TestCase):
+    def test_new_verification_does_not_invalidate_other_purpose(self):
+        user = User.objects.create_user(
+            username="purposeuser",
+            password="testpass123"
+        )
+
+        password_reset_verification = create_phone_verification(
+            user=user,
+            phone_number="09123456789",
+            purpose="password_reset"
+        )
+
+        create_phone_verification(
+            user=user,
+            phone_number="09123456789",
+            purpose="change_phone"
+        )
+
+        password_reset_verification.refresh_from_db()
+
+        self.assertFalse(password_reset_verification.is_verified)

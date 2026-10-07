@@ -29,6 +29,7 @@ def create_phone_verification(user,phone_number,purpose):
     if user:
         PhoneVerification.objects.filter(
                 user=user,
+                purpose=purpose,
                 is_verified = False
             ).update(is_verified = True)
         
