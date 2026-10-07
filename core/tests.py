@@ -202,4 +202,32 @@ class RegistrationVerificationLockTest(TestCase):
                 "registration_verified",
                 False
             )
-        )       
+        )  
+class PhoneVerificationCooldownPurposeTest(TestCase):
+    def test_cooldown_is_separate_for_each_purpose(self):
+        user = User.objects.create_user(
+            username="purposecooldown",
+            password="testpass123"
+        )
+
+        create_phone_verification(
+            user=user,
+            phone_number="09123456789",
+            purpose="password_reset"
+        )
+
+        from .utils import can_request_phone_verification
+
+        self.assertFalse(
+            can_request_phone_verification(
+                user,
+                purpose="password_reset"
+            )
+        )
+
+        self.assertTrue(
+            can_request_phone_verification(
+                user,
+                purpose="change_phone"
+            )
+        )            
