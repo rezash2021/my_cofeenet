@@ -119,3 +119,62 @@ class RegistrationVerificationViewTest(TestCase):
                 False
             )
         )
+
+class RegistrationVerificationAttemptsTest(TestCase):
+    def test_verification_is_locked_after_five_wrong_attempts(self):
+        verification = create_phone_verification(
+            user=None,
+            phone_number="09123456789",
+            purpose="registration"
+        )
+
+        session = self.client.session
+        session["registration_username"] = "attemptuser"
+        session["registration_phone"] = "09123456789"
+        session.save()
+
+        for _ in range(5):
+            self.client.post(
+                "/register/verify/",
+                {"code": "000000"}
+            )
+
+        verification.refresh_from_db()
+
+        self.assertEqual(verification.attempts, 5)
+        self.assertTrue(verification.is_verified)
+
+
+class RegistrationVerificationLockTest(TestCase):
+    def test_correct_code_is_rejected_after_five_wrong_attempts(self):
+        verification = create_phone_verification(
+            user=None,
+            phone_number="09123456789",
+            purpose="registration"
+        )
+
+        session = self.client.session
+        session["registration_username"] = "lockuser"
+        session["registration_phone"] = "09123456789"
+        session.save()
+
+        for _ in range(5):
+            self.client.post(
+                "/register/verify/",
+                {"code": "000000"}
+            )
+
+        verification.refresh_from_db()
+
+        response = self.client.post(
+            "/register/verify/",
+            {"code": verification.code}
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(
+            response.wsgi_request.session.get(
+                "registration_verified",
+                False
+            )
+        )       
