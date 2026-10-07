@@ -46,6 +46,31 @@ class PhoneVerificationCooldownTest(TestCase):
             )
         )
 
+class PhoneVerificationCooldownPassedTest(TestCase):
+    def test_cooldown_allows_request_after_60_seconds(self):
+        user = User.objects.create_user(
+            username="cooldownpassed",
+            password="testpass123"
+        )
+
+        verification = create_phone_verification(
+            user=user,
+            phone_number="09123456789",
+            purpose="password_reset"
+        )
+
+        verification.created_at = timezone.now() - timedelta(seconds=61)
+        verification.save(update_fields=["created_at"])
+
+        from .utils import can_request_phone_verification
+
+        self.assertTrue(
+            can_request_phone_verification(
+                user,
+                purpose="password_reset"
+            )
+        )        
+
 
 class PhoneVerificationPurposeTest(TestCase):
     def test_new_verification_does_not_invalidate_other_purpose(self):
