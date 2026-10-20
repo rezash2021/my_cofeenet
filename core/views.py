@@ -10,6 +10,9 @@ from .models import Service,PhoneVerification,Profile
 from .form import ( ProfileForm, PhoneChangeForm, PhoneVerificationForm,RegisterForm,ForgotPasswordForm,PasswordForm)
 from .utils import create_phone_verification,can_request_phone_verification
 
+from django.contrib import messages
+from core.sms import send_otp,SMSError
+
 def index(request):
 
     services = Service.objects.filter(is_active = True)
@@ -97,20 +100,32 @@ def register(request):
            username = form.cleaned_data["username"]
            phone_number = form.cleaned_data["phone_number"]
 
-           request.session["registration_username"] = username
-           request.session["registration_phone"] = phone_number
-           request.session["registration_verified"] = False
-
            verification = create_phone_verification(
                user=None,
                phone_number=phone_number,
                purpose="registration"
            )
 
-           print(
-               f"Registration OTP for : {verification.phone_number} : "
-               f"{verification.code}"
-           )
+           try:
+               
+               send_otp(phone_number,verification.code)
+
+           except SMSError:
+               
+               verification.is_verified=True
+               verification.save(update_fields=["is_verified"])
+
+               messages.error(
+                   request,
+                   "ارسال کد ناموفق بود لطفا چند لحظه دیگر تلاش کنید."
+               )
+
+               return render(request,"core/register.html",{"form":form})
+
+
+           request.session["registration_username"] = username
+           request.session["registration_phone"] = phone_number
+           request.session["registration_verified"] = False
 
            return redirect("verify_registration")
 
@@ -296,9 +311,14 @@ def forgot_password(request):
 
             phone_number = form.cleaned_data["phone_number"]
 
-            profile = Profile.objects.get(phone_number=phone_number)
+            profile = Profile.objects.filter(
+                phone_number=phone_number
+                ).select_related("user").first()
 
-            if not can_request_phone_verification(
+            if not profile:
+                form.add_error(phone_number,"اطلاعات وارد شده معتبر نیست.")
+
+            elif not can_request_phone_verification(
                 profile.user,
                 purpose="password_reset"
                 ):
@@ -313,16 +333,22 @@ def forgot_password(request):
                 user=profile.user,
                 phone_number=phone_number,
                 purpose="password_reset"
-            )
-
-                print(
-                     f"OTP password reset for {phone_number} :"
-                     f"{verification.code}"
                    )
 
-                request.session["password_reset_phone"] = phone_number
+                try:
+                    send_otp(phone_number,verification.code)
+                except SMSError:
+                    verification.is_verified = True
+                    verification.save(update_fields=["is_verified"])  
 
-                return redirect("verify_password_reset")
+                    messages.error("ارسال کد تایید ناموفق بود لطفا چند لحظه دیگر تلاش کنید.")  
+
+                else:
+                    request.session["password_reset_phone"] = phone_number
+
+                    request.session.pop("password_reset_verified",None)
+
+                    return redirect("verify_password_reset")
 
     else:
 
@@ -414,6 +440,58 @@ def verify_password_reset(request):
                       }
                   )  
 
+
+def resend_password_reset_code(request):
+
+    if request.method != "POST":
+        return redirect("forgot_password")
+
+    phone_number = request.session.get("password_reset_phone")
+
+    if not phone_number:
+        return redirect("forgot_password")
+
+    profile = Profile.objects.filter(
+        phone_number=phone_number
+    ).select_related("user").first()
+
+    if not profile:
+        request.session.pop("password_reset_phone",None)
+        return redirect("forgot_password")
+    if not can_request_phone_verification(
+        profile.user,
+        purpose="password_reset"
+    ):
+        messages.error(
+            request,
+            "لطفا 60 ثانیه صبر کنید و سپس مجددا درخواست کد نمایید."
+            )
+
+        return redirect("verify_password_reset")
+    verification = create_phone_verification(
+        user=profile.user,
+        phone_number=phone_number,
+        purpose="password_reset"
+    )
+
+    try:
+        send_otp(phone_number,verification.code)
+    except SMSError:
+        verification.is_verified=True
+        verification.save(update_fields=["is_verified"])    
+
+        messages.error(
+            "درخواست کد تایید ناموفق بود لطفا لحظاتی بعد دوباره تلاش کنید."
+        )
+    else:
+        request.session.pop("password_reset_verified",None)   
+        messages.success(
+            request,
+            "کد تایید جدید ارسال شد."
+        ) 
+
+    return redirect("verify_password_reset")
+
 def set_new_password(request):
 
     phone_number = request.session.get("password_reset_phone")
@@ -502,12 +580,15 @@ def change_phone(request):
                   purpose="change_phone"
                ) 
 
-               print(
-                  f"OTP for {request.user.username}:"
-                  f"{verification.code}"
-                ) 
-
-               return redirect("verify_phone")  
+               try:
+                 send_otp(phone_number,verification.code)
+               except SMSError:
+                 form.add_error(
+                     None,
+                     "ارسال کد تایید ناموفق بود.لطفا مجددا تلاش کنید."
+                 )
+               else:
+                 return redirect("verify_phone")  
 
    else:
        form = PhoneChangeForm(

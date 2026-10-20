@@ -15,6 +15,7 @@ urlpatterns = [
     path("register/complete/",views.complete_registration,name="complete_registration"),
     path("password/forgot/",views.forgot_password,name="forgot_password"),
     path("password/verify/",views.verify_password_reset,name="verify_password_reset"),
+    path("password/resend/",views.resend_password_reset_code,name="resend_password_reset_code"),
     path("password/new/",views.set_new_password,name="set_new_password"),
     path("profile/",views.profile,name="profile"),
     path("profile/change_phone/",views.change_phone,name="change_phone"),

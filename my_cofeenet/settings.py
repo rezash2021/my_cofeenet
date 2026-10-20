@@ -29,7 +29,15 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Security headers configured
-DEBUG = env.bool("DEBUG",default=True)
+DEBUG = env.bool("DEBUG",default=False)
+
+SMS_PROVIDER=env("SMS_PROVIDER",default="")
+SMS_API_KEY=env("SMS_API_KEY",default="")
+SMS_SENDER=env("SMS_SENDER",default="")
+SMSIR_OTP_TEMPLATE_ID=env("SMSIR_OTP_TEMPLATE_ID",default="")
+SMS_DEBUG_MODE=env.bool("SMS_DEBUG_MODE",default=False)
+
+KAVENEGAR_OTP_TEMPLATE=env("KAVENEGAR_OTP_TEMPLATE",default="")
 
 ALLOWED_HOSTS = env.list(
     "ALLOWED_HOSTS",
@@ -148,3 +156,24 @@ LOGIN_URL = "login"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 SECURE_REFERRER_POLICY = "same-origin"
+
+SECURE_SSL_REDIRECT = env.bool(
+    "SECURE_SSL_REDIRECT",
+    default=False,
+)
+
+SESSION_COOKIE_SECURE = env.bool(
+    "SESSION_COOKIE_SECURE",
+    default=False,
+)
+
+CSRF_COOKIE_SECURE = env.bool(
+    "CSRF_COOKIE_SECURE",
+    default=False,
+)
+
+SECURE_HSTS_SECONDS = env.int(
+    "SECURE_HSTS_SECONDS",
+    default=0,
+)
+
