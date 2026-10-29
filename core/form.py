@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 
-from .models import Profile
+from .models import Profile,Order
 
 
 class RegisterForm(forms.Form):
@@ -237,6 +237,48 @@ class ForgotPasswordForm(forms.Form):
                 "حساب کاربری با این شماره موبایل یافت نشد"
             )
         return phone_number
+
+
+
+class OrderForm(forms.ModelForm):
+
+    class Meta:
+        model = Order
+        fields = ["description"]
+        labels = {
+            "description":"توضیحات درخواست"
+        }
+        widgets = {
+            "description":forms.Textarea(
+                attrs={
+                    "rows":5,
+                    "maxlength":5000,
+                    "required":True,
+                    "placeholder":("لطفا درخواست خود را به طور کامل توضیح دهید."),
+                    "class":"w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                }
+            ),
+        }
+
+        error_messages = {
+            "description":{
+                "required":"لطفا توضیحات درخواست را وارد کنید."
+            }
+        }
+
+    def clean_description(self):
+
+        description = self.cleaned_data["description"].strip()
+
+        if len(description) < 10:
+            raise forms.ValidationError(
+                "توضیحات درخواست نباید کمتر از 10 نویسه باشد."
+            )
+        if len(description) > 5000:
+            raise forms.ValidationError(
+                "توضیحات درخواست نمی تواند بیشتر از 5000 نویسه باشد."
+            ) 
+        return description   
             
                 
 

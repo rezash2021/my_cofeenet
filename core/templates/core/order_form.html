@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}
+ثبت سفارش
+{% endblock %}
+
+
+{% block content %}
+<section class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-2xl">
+
+        <div class="mb-8">
+            <a
+                href="{% url 'service_detail' service.slug %}"
+                class="text-sm font-medium text-indigo-600 transition hover:text-indigo-800"
+            >
+                بازگشت به جزئیات خدمت
+            </a>
+
+            <h1 class="mt-4 text-2xl font-bold text-gray-900 sm:text-3xl">
+                ثبت درخواست خدمت
+            </h1>
+
+            <p class="mt-2 text-sm leading-7 text-gray-600">
+                خدمت انتخاب‌شده:
+                <span class="font-semibold text-gray-900">
+                    {{ service.title }}
+                </span>
+            </p>
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8">
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div>
+                    <label
+                        for="{{ form.description.id_for_label }}"
+                        class="mb-2 block text-sm font-semibold text-gray-800"
+                    >
+                        توضیحات درخواست
+                    </label>
+
+                    {{ form.description }}
+
+                    {% if form.description.errors %}
+                        <div class="mt-2 space-y-1 text-sm text-red-600">
+                            {% for error in form.description.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <p class="mt-2 text-xs leading-6 text-gray-500">
+                        لطفاً نیاز خود را واضح توضیح بده. اطلاعات حساس مانند رمز عبور یا اطلاعات بانکی را در این قسمت وارد نکن.
+                    </p>
+                </div>
+
+                <button
+                    type="submit"
+                    class="inline-flex w-full items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                    ثبت سفارش
+                </button>
+            </form>
+
+        </div>
+
+    </div>
+</section>
+{% endblock %}

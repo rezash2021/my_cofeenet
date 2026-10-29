@@ -1,0 +1,54 @@
+{% extends "admin/change_list.html" %}
+
+{% block result_list %}
+
+<style>
+    #result_list tbody tr.new-order-row,
+    #result_list tbody tr.new-order-row td,
+    #result_list tbody tr.new-order-row th {
+        background-color: #eff6ff !important;
+    }
+
+    #result_list tbody tr.new-order-row:hover,
+    #result_list tbody tr.new-order-row:hover td,
+    #result_list tbody tr.new-order-row:hover th {
+        background-color: #dbeafe !important;
+    }
+</style>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px;">
+
+    {% for item in status_counts %}
+        <a
+            href="?status={{ item.value }}"
+            style="display: block; padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; color: #334155; text-decoration: none;"
+        >
+            <div style="font-size: 13px; margin-bottom: 8px;">
+                {{ item.label }}
+            </div>
+
+            <div style="font-size: 24px; font-weight: bold;">
+                {{ item.count }}
+            </div>
+        </a>
+    {% endfor %}
+
+</div>
+
+{{ block.super }}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const rows = document.querySelectorAll("#result_list tbody tr");
+
+        rows.forEach(function (row) {
+            const statusSelect = row.querySelector('select[name$="-status"]');
+
+            if (statusSelect && statusSelect.value === "submitted") {
+                row.classList.add("new-order-row");
+            }
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import Http404
 from django.utils import timezone
 from django.db import transaction
 from django.shortcuts import render,get_object_or_404,redirect
@@ -6,8 +6,8 @@ from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils.http import url_has_allowed_host_and_scheme
-from .models import Service,PhoneVerification,Profile
-from .form import ( ProfileForm, PhoneChangeForm, PhoneVerificationForm,RegisterForm,ForgotPasswordForm,PasswordForm)
+from .models import Service,PhoneVerification,Profile,Order
+from .form import ( ProfileForm, PhoneChangeForm, PhoneVerificationForm,RegisterForm,ForgotPasswordForm,PasswordForm,OrderForm)
 from .utils import create_phone_verification,can_request_phone_verification
 
 from django.contrib import messages
@@ -24,13 +24,42 @@ def index(request):
     return render(request, "core/index.html",context)
 
 def services(request):
-    services = Service.objects.filter(is_active = True)
 
-    context = {
-        "services":services
-    }
+    categories = [
+        {
+            "slug":"administrative",
+            "title":"خدمات اداری و امور آنلاین",
+            "description":"برای انجام امور اداری و استفاده از خدمات آنلاین این بخش را انتخاب کنید"
+        },
+        {
+            "slug":"business",
+            "title":"راهکارهای هوشمند کسب و کار",
+            "description":"ارائه راهکارهایی برای ساده سازی فرایندها،خودکارسازی کارهای تکراری و بهبود مدیریت کسب و کار"
+        }
+    ]
 
-    return render(request,"core/services.html",context)
+    return render(request,"core/services.html",{"categories":categories})
+
+
+def service_category(request,category):
+
+    category_titles = dict(Service.CATEGORY_CHOICES)
+
+    if category not in category_titles:
+        raise Http404("دسته بندی مورد نظر پیدا نشد")
+
+    services = Service.objects.filter(
+        category=category,
+        is_active=True
+    ).order_by("title")
+
+    return render(request,"core/service_category.html",
+                  {
+                      "services":services,
+                      "category":category,
+                      "category_title":category_titles[category]
+                  }
+                  )
 
 
 def service_detail(request,slug):
@@ -544,10 +573,14 @@ def set_new_password(request):
 def profile(request):
 
     profile = request.user.profile
+
+    orders = Order.objects.filter(user=profile.user).select_related("service").order_by("-created_at")
+    
     return render(request,"core/profile.html",
                   {
                       "profile":profile,
-                      "current_phone_number" : profile.phone_number
+                      "current_phone_number" : profile.phone_number,
+                      "orders":orders
                    
                    },
                   )
@@ -702,3 +735,69 @@ def verify_phone(request):
             "verification": verification,
         },
     )
+
+@login_required
+def create_order(request,slug):
+    service = get_object_or_404(
+        Service,
+        slug=slug,
+        is_active=True
+    )
+
+    if request.method == "POST":
+        form = OrderForm(request.POST)
+
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.user = request.user
+            order.service = service
+            order.save()
+
+            messages.success(
+                request,
+                f"درخواست شما با شماره{order.pk}ثبت شد."
+            )
+
+            return redirect("profile")
+    else:
+        form = OrderForm()
+
+    return render(request,
+                  "core/order_form.html",
+                  {
+                      "form":form,
+                      "service":service
+                  }
+                  )     
+
+@login_required
+def cancel_order(request,order_id):
+
+    if request.method != "POST":
+        return redirect("profile")
+
+    order = get_object_or_404(
+        Order,
+        pk=order_id,
+        user=request.user
+    )
+
+    if order.status != "submitted":
+        messages.error(
+            request,
+            "لغو درخواست ممکن نیست.درخواست در حال بررسی یا انجام شده می باشد."
+        )
+        return redirect("profile")
+
+    order.status = "cancelled"
+    order.save(update_fields=["status"])
+
+    messages.success(
+        request,
+        f"درخواست شماره{order.pk}با موفقیت لغو شد."
+    )
+
+    return redirect("profile")
+
+    
+

@@ -3,18 +3,70 @@ from django.db import models
 
 class Service(models.Model):
 
-    title = models.CharField(max_length = 100)
+    CATEGORY_CHOICES = {
+         "administrative":"خدمات اداری و امور آنلاین",
+         "business":"راهکارهای هوشمند کسب و کار"
+    }
 
-    slug = models.SlugField(max_length=120,unique=True)
+    title = models.CharField(
+         max_length = 100,
+         verbose_name="عنوان خدمت"
+         )
 
-    description = models.TextField()
+    slug = models.SlugField(
+         max_length=120,unique=True,
+         verbose_name="شناسه خدمت"
 
-    icon = models.CharField(max_length = 20)
+         )
 
-    is_active = models.BooleanField(default=True)
+    category = models.CharField(
+         max_length=20,
+         choices=CATEGORY_CHOICES,
+         default="administrative",
+         verbose_name="دسته بندی"
+    )
+
+    description = models.TextField(verbose_name="توضیح کوتاه")
+
+    detail_description = models.TextField(
+         blank=True,
+         verbose_name="توضیحات کامل خدمت"
+    )
+
+    requirements = models.TextField(
+         blank=True,
+         verbose_name="مدارک موردنیاز"
+    )
+
+    process_steps = models.TextField(
+         blank=True,
+         verbose_name="مراحل انجام خدمت"
+    )
+
+    important_notes = models.TextField(
+         blank=True,
+         verbose_name="نکات مهم"
+    )
+
+    faq = models.JSONField(
+         default=list,
+         blank=True,
+         verbose_name="پرسش های متداول"
+    )
+
+
+    icon = models.CharField(
+         max_length = 20,
+         verbose_name="آیکون"
+     )
+
+    is_active = models.BooleanField(
+         default=True,
+         verbose_name="فعال"
+         )
 
     def __str__(self):
-        return(self.title)
+        return self.title
 
 
 class Profile(models.Model):
@@ -82,5 +134,54 @@ class PhoneVerification(models.Model):
             if self.user:
                  return f"{self.user.username}-{self.phone_number}-{self.purpose}"
             return f"registration-{self.phone_number}-{self.purpose}"
+
+
+
+class Order(models.Model):
+
+     STATUS_CHOICES = [
+          ("submitted","ثبت شده"),
+          ("reviewing","در حال بررسی"),
+          ("in_progress","در حال انجام"),
+          ("completed","انجام شده"),
+          ("rejected","رد شده"),
+          ("cancelled","لغو شده")
+     ]
+
+     user = models.ForeignKey(
+          User,
+          on_delete=models.CASCADE,
+          related_name="service_orders"
+     )
+
+     service = models.ForeignKey(
+          Service,
+          on_delete=models.PROTECT,
+          related_name="orders"
+     )
+
+     description = models.TextField(
+          verbose_name="توضیحات درخواست"
+     )
+
+     status = models.CharField(
+          max_length=20,
+          choices = STATUS_CHOICES,
+          default="submitted",
+          verbose_name="وضعیت سفارش"
+     )
+
+     created_at = models.DateTimeField(
+          auto_now_add=True,
+          verbose_name="زمان ثبت"
+     )
+
+     updated_at = models.DateTimeField(
+          auto_now=True,
+          verbose_name="آخرین به روز رسانی"
+     )
+
+     def __str__(self):
+          return f"سفارش#{self.pk}-{self.service.title}"
         
     

@@ -1,5 +1,5 @@
-```html
 {% extends "base.html" %}
+{% load jalali_filters %}
 
 {% block title %}
 پروفایل کاربری
@@ -7,78 +7,262 @@
 
 {% block content %}
 
-<div class="max-w-3xl mx-auto px-6 py-12">
+<div class="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
 
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+    <!-- اطلاعات حساب کاربری -->
+    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
 
-        <!-- عنوان صفحه -->
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-slate-900">
+            <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">
                 پروفایل کاربری
             </h1>
 
-            <p class="mt-2 text-slate-500 leading-7">
+            <p class="mt-2 leading-7 text-slate-500">
                 اطلاعات حساب کاربری خود را مشاهده و مدیریت کنید.
             </p>
         </div>
 
         <!-- نام کاربری -->
         <div class="mb-6">
-            <label class="block mb-2 text-sm font-medium text-slate-700">
+            <label class="mb-2 block text-sm font-medium text-slate-700">
                 نام کاربری
             </label>
 
-            <div class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700">
+            <div class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700">
                 {{ request.user.username }}
             </div>
         </div>
 
         <!-- شماره موبایل -->
         <div class="mb-6">
-            <label class="block mb-2 text-sm font-medium text-slate-700">
+            <label class="mb-2 block text-sm font-medium text-slate-700">
                 شماره موبایل
             </label>
 
-            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                <div class="flex-1 w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+
+                <div class="w-full flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700">
                     {{ current_phone_number|default:"شماره موبایلی ثبت نشده است" }}
                 </div>
 
                 {% if current_phone_number %}
-                    <span class="inline-flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
-                        <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span class="inline-flex items-center gap-2 self-start rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+                        <span class="h-2 w-2 rounded-full bg-green-500"></span>
                         ثبت‌شده
                     </span>
                 {% endif %}
+
             </div>
 
-            <p class="mt-2 text-sm text-slate-500 leading-6">
+            <p class="mt-2 text-sm leading-6 text-slate-500">
                 برای حفظ امنیت حساب، تغییر شماره موبایل از طریق تأیید کد پیامکی انجام می‌شود.
             </p>
         </div>
 
         <!-- عملیات پروفایل -->
-        <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100">
+        <div class="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row">
 
             <a
                 href="{% url 'change_phone' %}"
-                class="inline-flex justify-center items-center bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl transition"
+                class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
                 تغییر شماره موبایل
             </a>
 
             <a
                 href="{% url 'home' %}"
-                class="inline-flex justify-center items-center border border-slate-300 hover:bg-slate-50 text-slate-700 px-6 py-3 rounded-xl transition"
+                class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-6 py-3 font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
             >
                 بازگشت به صفحه اصلی
             </a>
 
         </div>
 
-    </div>
+    </section>
+
+
+    <!-- سفارش‌های کاربر -->
+    <section class="mt-8">
+
+        <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+            <div>
+                <h2 class="text-xl font-bold text-slate-900 sm:text-2xl">
+                    سفارش‌های من
+                </h2>
+
+                <p class="mt-2 text-sm leading-6 text-slate-500">
+                    درخواست‌های ثبت‌شده و وضعیت پیگیری آن‌ها.
+                </p>
+            </div>
+
+            <a
+                href="{% url 'services' %}"
+                class="inline-flex items-center justify-center self-start rounded-xl bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100"
+            >
+                مشاهده خدمات
+            </a>
+
+        </div>
+
+
+        {% if orders %}
+
+            <div class="space-y-4">
+
+                {% for order in orders %}
+
+                    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6">
+
+                        <!-- عنوان و وضعیت -->
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+
+                            <div>
+                                <p class="text-sm text-slate-500">
+                                    شماره سفارش:
+                                    <span class="font-semibold text-slate-700">
+                                        #{{ order.pk }}
+                                    </span>
+                                </p>
+
+                                <h3 class="mt-2 text-lg font-bold text-slate-900">
+                                    {{ order.service.title }}
+                                </h3>
+                            </div>
+
+
+                            <!-- وضعیت سفارش -->
+                            <div class="self-start">
+
+                                {% if order.status == "submitted" %}
+
+                                    <span class="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700">
+                                        ثبت‌شده
+                                    </span>
+
+                                {% elif order.status == "reviewing" %}
+
+                                    <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700">
+                                        در حال بررسی
+                                    </span>
+
+                                {% elif order.status == "in_progress" %}
+
+                                    <span class="inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700">
+                                        در حال انجام
+                                    </span>
+
+                                {% elif order.status == "completed" %}
+
+                                    <span class="inline-flex rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700">
+                                        تکمیل‌شده
+                                    </span>
+
+                                {% elif order.status == "rejected" %}
+
+                                    <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700">
+                                        ردشده
+                                    </span>
+
+                                {% elif order.status == "cancelled" %}
+
+                                    <span class="inline-flex rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700">
+                                        لغوشده
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="inline-flex rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700">
+                                        {{ order.get_status_display }}
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- توضیحات سفارش -->
+                        <div class="mt-5 rounded-xl bg-slate-50 p-4">
+
+                            <p class="mb-2 text-sm font-semibold text-slate-700">
+                                توضیحات درخواست
+                            </p>
+
+                            <p class="whitespace-pre-line break-words text-sm leading-7 text-slate-600">{{ order.description }}</p>
+
+                        </div>
+
+
+                        <!-- تاریخ‌ها -->
+                        <div class="mt-5 flex flex-col gap-2 border-t border-slate-100 pt-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+
+                            <p>
+                                تاریخ ثبت:
+                                {{ order.created_at|jalali_date }}
+                            </p>
+
+                            <p>
+                                آخرین به‌روزرسانی:
+                                {{ order.updated_at|jalali_date }}
+                            </p>
+
+                        </div>
+
+                        <!-- دکمه لغو درخواست -->
+                        {% if order.status == "submitted" %}
+                            <div class="mt-4 border-t border-slate-100 pt-4">
+                                <form
+                                    method="post"
+                                    action="{% url 'cancel_order' order.id %}"
+                                    onsubmit="return confirm('آیا از لغو این درخواست مطمئن هستید؟');"
+                                >
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                                    >
+                                        لغو درخواست
+                                    </button>
+                                </form>
+                            </div>
+                        {% endif %}
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+
+        {% else %}
+
+            <!-- وضعیت بدون سفارش -->
+            <div class="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center sm:py-16">
+
+                <h3 class="text-lg font-bold text-slate-900">
+                    هنوز سفارشی ثبت نکرده‌اید
+                </h3>
+
+                <p class="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-500">
+                    پس از انتخاب یکی از خدمات و ثبت درخواست، سفارش شما در این بخش نمایش داده می‌شود.
+                </p>
+
+                <a
+                    href="{% url 'services' %}"
+                    class="mt-6 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                    مشاهده و انتخاب خدمات
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </section>
 
 </div>
 
 {% endblock %}
-```
