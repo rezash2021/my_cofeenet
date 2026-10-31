@@ -11,7 +11,7 @@ from .form import ( ProfileForm, PhoneChangeForm, PhoneVerificationForm,Register
 from .utils import create_phone_verification,can_request_phone_verification
 
 from django.contrib import messages
-from core.sms import send_otp,SMSError
+from core.sms import send_otp,send_order_notification,SMSError
 
 def index(request):
 
@@ -752,6 +752,15 @@ def create_order(request,slug):
             order.user = request.user
             order.service = service
             order.save()
+
+            try:
+                send_order_notification(order)
+            except Exception:
+                import logging
+                logging.getLogger(__name__).exception(
+                    "Order notification failed for order #%s",
+                     order.pk,
+                )
 
             messages.success(
                 request,

@@ -35,4 +35,17 @@ def send_otp(phone_number,code):
         logger.exception("Unexpected SMS Provider error")
         raise SMSError("Could not send verification SMS.") from exc
 
-    logger.info("OTP SMS Provider accepted request.")    
+    logger.info("OTP SMS Provider accepted request.")
+
+
+def send_order_notification(order):
+    """
+    ثبت اعلان آزمایشی سفارش جدید در لاگ برنامه.
+    در این مرحله هیچ پیامک واقعی ارسال نمی‌شود.
+    """
+
+    logger.info(
+        "ORDER NOTIFICATION DRY RUN | order_id=%s | service=%s",
+        order.pk,
+        order.service.title,
+    )
