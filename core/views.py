@@ -1,6 +1,7 @@
 from django.http import Http404
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Count
 from django.shortcuts import render,get_object_or_404,redirect
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.models import User
@@ -575,12 +576,122 @@ def profile(request):
     profile = request.user.profile
 
     orders = Order.objects.filter(user=profile.user).select_related("service").order_by("-created_at")
+
+    status_counts = {
+        "submitted": 0,
+        "reviewing": 0,
+        "in_progress": 0,
+        "completed": 0,
+        "rejected": 0,
+        "cancelled": 0,
+    }
+
+    for status, count in (
+        orders.values_list("status")
+        .annotate(count=Count("status"))
+    ):
+        status_counts[status] = count
+
+    order_stats = {
+        "total_orders":orders.count(),
+        **{
+            f"{status}_orders":count
+            for status,count in status_counts.items()
+        }
+    }
+
+    status_filters = [
+        {
+            "value":"all",
+            "label":"همه سفارش ها"
+        },
+        *[
+            {
+                "value":status,
+                "label":label
+            }
+            for status,label in Order.STATUS_CHOICES
+        ]
+    ]
+
+
+
+    stats_cards = [
+        {
+            "title": "کل سفارش‌ها",
+            "count": order_stats["total_orders"],
+            "description": "مجموع درخواست‌های ثبت‌شده",
+            "color": "indigo",
+            "icon": "#",
+        },
+        {
+            "title": "ثبت‌شده",
+            "count": order_stats["submitted_orders"],
+            "description": "در انتظار بررسی اولیه",
+            "color": "blue",
+            "icon": "✓",
+        },
+        {
+            "title": "در حال بررسی",
+            "count": order_stats["reviewing_orders"],
+            "description": "در حال بررسی درخواست",
+            "color": "amber",
+            "icon": "◷",
+        },
+        {
+            "title": "در حال انجام",
+            "count": order_stats["in_progress_orders"],
+            "description": "درخواست‌های در حال پیگیری",
+            "color": "violet",
+            "icon": "↻",
+        },
+        {
+            "title": "تکمیل‌شده",
+            "count": order_stats["completed_orders"],
+            "description": "درخواست‌های به پایان رسیده",
+            "color": "green",
+            "icon": "✓",
+        },
+        {
+            "title": "ردشده",
+            "count": order_stats["rejected_orders"],
+            "description": "درخواست‌های ردشده",
+            "color": "red",
+            "icon": "×",
+        },
+        {
+            "title": "لغوشده",
+            "count": order_stats["cancelled_orders"],
+            "description": "درخواست‌های لغوشده",
+            "color": "slate",
+            "icon": "−",
+        },
+    ]
+
+    status_styles = {
+        "submitted": "border-blue-200 bg-blue-50 text-blue-700",
+        "reviewing": "border-amber-200 bg-amber-50 text-amber-700",
+        "in_progress": "border-indigo-200 bg-indigo-50 text-indigo-700",
+        "completed": "border-green-200 bg-green-50 text-green-700",
+        "rejected": "border-red-200 bg-red-50 text-red-700",
+        "cancelled": "border-slate-200 bg-slate-100 text-slate-700",
+    }
+
+    for order in orders:
+        order.status_style = status_styles.get(
+            order.status,
+            "border-slate-200 bg-slate-100 text-slate-700",
+        )    
+        
     
     return render(request,"core/profile.html",
                   {
                       "profile":profile,
                       "current_phone_number" : profile.phone_number,
-                      "orders":orders
+                      "orders":orders,
+                      **order_stats,
+                      "stats_cards":stats_cards,
+                      "status_filters":status_filters
                    
                    },
                   )
