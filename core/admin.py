@@ -82,14 +82,7 @@ class OrderAdmin(admin.ModelAdmin):
     change_list_template = "admin/core/order/change_list.html"
 
     def changelist_view(self,request,extra_context=None):
-        statuses = [
-            ("submitted","ثبت شده"),
-            ("reviewing","در حال بررسی"),
-            ("in_progress","در حال انجام"),
-            ("complated","انجام شده"),
-            ("cancelled","لغو شده"),
-            ("rejected","رد شده")
-        ]
+        statuses = Order.STATUS_CHOICES
 
         status_counts=[]
 

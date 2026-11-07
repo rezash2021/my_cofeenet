@@ -578,19 +578,14 @@ def profile(request):
     orders = Order.objects.filter(user=profile.user).select_related("service").order_by("-created_at")
 
     status_counts = {
-        "submitted": 0,
-        "reviewing": 0,
-        "in_progress": 0,
-        "completed": 0,
-        "rejected": 0,
-        "cancelled": 0,
+        "submitted": orders.filter(status="submitted").count(),
+        "reviewing": orders.filter(status="reviewing").count(),
+        "in_progress": orders.filter(status="in_progress").count(),
+        "completed": orders.filter(status="completed").count(),
+        "rejected": orders.filter(status="rejected").count(),
+        "cancelled": orders.filter(status="cancelled").count(),
     }
 
-    for status, count in (
-        orders.values_list("status")
-        .annotate(count=Count("status"))
-    ):
-        status_counts[status] = count
 
     order_stats = {
         "total_orders":orders.count(),
@@ -646,7 +641,7 @@ def profile(request):
             "icon": "↻",
         },
         {
-            "title": "تکمیل‌شده",
+            "title": "انجام شده",
             "count": order_stats["completed_orders"],
             "description": "درخواست‌های به پایان رسیده",
             "color": "green",

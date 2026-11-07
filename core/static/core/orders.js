@@ -1,15 +1,11 @@
 document.addEventListener("DOMContentLoaded", function () {
     const filterButtons = document.querySelectorAll(".order-filter");
     const orderCards = document.querySelectorAll("[data-order-status]");
-
-    console.log("Filter buttons:", filterButtons.length);
-    console.log("Order cards:", orderCards.length);
+    const emptyMessage = document.getElementById("empty-filter-message");
 
     filterButtons.forEach(function (button) {
         button.addEventListener("click", function () {
             const selectedStatus = this.dataset.filter;
-
-            console.log("Selected filter:", selectedStatus);
 
             filterButtons.forEach(function (item) {
                 item.classList.remove("bg-indigo-600", "text-white");
@@ -30,6 +26,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             this.classList.add("bg-indigo-600", "text-white");
 
+            let visibleCount = 0;
+
             orderCards.forEach(function (card) {
                 const orderStatus = card.dataset.orderStatus;
 
@@ -39,12 +37,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 card.hidden = !matches;
 
-                console.log({
-                    orderStatus: orderStatus,
-                    selectedStatus: selectedStatus,
-                    matches: matches
-                });
+                if(matches){
+                    visibleCount++;
+                }
             });
+            emptyMessage.hidden = visibleCount > 0;
         });
     });
 });
