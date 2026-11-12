@@ -1,4 +1,4 @@
-from django.http import Http404
+from django.http import Http404,JsonResponse
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Count
@@ -6,10 +6,12 @@ from django.shortcuts import render,get_object_or_404,redirect
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_GET,require_POST 
 from django.utils.http import url_has_allowed_host_and_scheme
-from .models import Service,PhoneVerification,Profile,Order
+from .models import Service,PhoneVerification,Profile,Order,OrderMessage
 from .form import ( ProfileForm, PhoneChangeForm, PhoneVerificationForm,RegisterForm,ForgotPasswordForm,PasswordForm,OrderForm)
 from .utils import create_phone_verification,can_request_phone_verification
+import json
 
 from django.contrib import messages
 from core.sms import send_otp,send_order_notification,SMSError
@@ -914,5 +916,87 @@ def cancel_order(request,order_id):
 
     return redirect("profile")
 
+@login_required   
+@require_GET
+def get_order_messages(request,order_id):
+
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+        user=request.user
+    )
+    order_messages = OrderMessage.objects.filter(
+        order=order,
+    ).order_by("created_at")
+
+    messages_list = list(
+        order_messages.values(
+            "id",
+            "sender_id",
+            "sender__username",
+            "message",
+            "created_at",
+            "is_read"
+        )
+    )
+
+    return JsonResponse({
+        "messages":messages_list
+    })
+
+@login_required
+@require_POST
+def send_order_message(request,order_id):
+
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+        user=request.user
+    )
+    if order.status in ["rejected","cancelled"]:
+        return JsonResponse(
+            {"error":"برای وضعیت رد شده و لغو شده امکان ارسال پیام وجود ندارد"},
+            status=403)
+    try:
+        data = json.loads(request.body)
+        if isinstance(data,dict):
+          message = data.get("message")
+        else:  
+            return JsonResponse({
+                "error":"ساختار داده ارسالی قابل قبول نمی باشد"
+            },status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({
+            "error":"دریافت اطلاعات با خطا مواجه شد"
+        },status=400)
+
+    if not isinstance(message,str):
+        return JsonResponse(
+           {"error":"نوع داده ارسال شده مناسب نمی باشد"},
+            status=400
+        )
+    message = message.strip()
+    if message == "":
+        return JsonResponse({
+            "error":"پیام نمی تواند خالی باشد"
+        },status=400)
     
+    new_message = OrderMessage.objects.create(
+        order=order,
+        sender=request.user,
+        message=message
+    )
+
+    return JsonResponse({
+        "id":new_message.id,
+        "order_id":order_id,
+        "sender_id":request.user.id,
+        "message":new_message.message,
+        "created_at":new_message.created_at.isoformat(),
+        "is_read":new_message.is_read
+    },status=201)   
+
+
+
+
 

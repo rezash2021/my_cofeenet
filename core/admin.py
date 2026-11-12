@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import reverse
 
-from .models import Service,Profile,Order
+from .models import Service,Profile,Order,OrderMessage
 
 admin.site.register(Profile)
 
@@ -105,6 +105,13 @@ class OrderAdmin(admin.ModelAdmin):
      if obj.status == "submitted":
         return "new-order-row"
      return "" 
+
+@admin.register(OrderMessage)
+class OrderMessageAdmin(admin.ModelAdmin):
+    list_display = ("id", "order", "sender", "created_at", "is_read")
+    list_filter = ("is_read", "created_at")
+    search_fields = ("message", "sender__username")
+    readonly_fields = ("created_at",)
 
     
 

@@ -184,4 +184,42 @@ class Order(models.Model):
      def __str__(self):
           return f"سفارش#{self.pk}-{self.service.title}"
         
-    
+
+class OrderMessage(models.Model):
+
+     order = models.ForeignKey(
+          Order,
+          on_delete=models.CASCADE,
+          related_name="message",
+          verbose_name="سفارش"
+     )  
+
+     sender = models.ForeignKey(
+          User,
+          on_delete=models.CASCADE,
+          related_name="order_message",
+          verbose_name="فرستنده"
+     ) 
+
+     message = models.TextField(
+          verbose_name="متن پیام"
+     ) 
+
+     created_at = models.DateTimeField(
+          auto_now_add=True,
+          verbose_name="زمان ارسال"
+     )
+
+     is_read = models.BooleanField(
+          default=False,
+          verbose_name="خوانده شده"
+     )
+
+     class Meta:
+          ordering = ["created_at"]
+          verbose_name = 'پیام سفارش'
+          verbose_name_plural = 'پیام های سفارش'
+
+     def __str__(self):
+         return f"پیام سفارش#{self.order_id}از{self.sender}"
+          

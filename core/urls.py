@@ -23,4 +23,6 @@ urlpatterns = [
     path("profile/change_phone/",views.change_phone,name="change_phone"),
     path("profile/verify_phone/",views.verify_phone,name="verify_phone"),
     path("profile/orders/<int:order_id>/cancel/",views.cancel_order,name="cancel_order"),
+    path("profile/orders/<int:order_id>/messages/",views.get_order_messages,name="get_order_messages"),
+    path("profile/orders/<int:order_id>/new_message/",views.send_order_message,name="send_order_message")
 ]
